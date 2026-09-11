@@ -1,0 +1,9 @@
+BACKEND
+cd R:\midunbvsa\student-feedback\backend
+
+.\venv\Scripts\Activate.ps1
+
+uvicorn main:app --reload
+
+FRONTEND
+npm  run dev
