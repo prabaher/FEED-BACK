@@ -5,11 +5,24 @@ from models import Student
 from routes import auth, feedback, events, admin
 from services.student_import import import_students_from_json
 from pathlib import Path
+import os
+
 
 app = FastAPI(title="Student Feedback Hub API", version="1.0.0")
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv(
+            "FRONTEND_URL",
+             "http://localhost:3000,http://localhost:5173"
+        ).split(",")
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.on_event("startup")
 def startup_event():
     create_tables()
