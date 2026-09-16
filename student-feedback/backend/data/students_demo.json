@@ -1,6 +1,6 @@
 [
-  {"register_no": "23AD001", "name": "Demo Student One", "dob": "15-04-2005", "department": "AI&DS", "year": "III", "section": "A"},
-  {"register_no": "23AD002", "name": "Demo Student Two", "dob": "21-08-2005", "department": "AI&DS", "year": "III", "section": "A"},
-  {"register_no": "23CSE001", "name": "Demo Student Three", "dob": "10-03-2004", "department": "CSE", "year": "III", "section": "B"},
-  {"register_no": "23ECE001", "name": "Demo Student Four", "dob": "28-06-2005", "department": "ECE", "year": "II", "section": "C"}
+  {"register_no": "715024243063", "name": "PRABAHER J", "dob": "11-05-2006", "department": "AI&DS", "year": "III", "section": "B"},
+  {"register_no": "715024243026", "name": "ESSAKI", "dob": "14-11-2006", "department": "AI&DS", "year": "III", "section": "A"},
+  {"register_no": "715024243079", "name": "BOB", "dob": "11-05-2007", "department": "AI&DS", "year": "III", "section": "B"},
+  {"register_no": "715024243081", "name": "GOKUL", "dob": "28-02-2007", "department": "AI&DS", "year": "III", "section": "B"}
 ]

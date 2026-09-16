@@ -32,7 +32,7 @@ npm run dev
 **Student:** 23AD001 / 15-04-2005
 **Admin:** admin / admin123
 
-## Features
+## **Features**
 
 ✅ Student login with Register No + DOB
 ✅ General & event feedback (separate storage)
