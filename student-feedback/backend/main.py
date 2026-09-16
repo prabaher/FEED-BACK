@@ -10,15 +10,15 @@ import os
 
 app = FastAPI(title="Student Feedback Hub API", version="1.0.0")
 
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://feed-back-seven-gamma.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        origin.strip()
-        for origin in os.getenv(
-            "FRONTEND_URL",
-             "http://localhost:3000,http://localhost:5173"
-        ).split(",")
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
