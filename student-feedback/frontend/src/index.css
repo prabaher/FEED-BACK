@@ -61,7 +61,7 @@ textarea:focus { outline: none; background: rgba(255,255,255,0.1); border-color:
 .landing-features svg { color: #22d3ee; }
 .landing-art { min-height: 520px; position: relative; align-items: center; justify-content: center; }
 .landing-art::before { content: ''; position: absolute; inset: 5% -15% 5% 0; border-radius: 48% 52% 45% 55%; background: linear-gradient(145deg, #1678df, #30a3fa 45%, #162e8e); opacity: .95; transform: rotate(-8deg); filter: blur(6px); }
-.landing-note { position: absolute; z-index: 2; top: 13%; right: 15%; width: 190px; padding: 1.2rem; color: #113a8b; background: #eef7ff; transform: rotate(-8deg); box-shadow: 0 14px 20px rgba(0,0,0,.2); font-size: 1.15rem; animation: noteBounce 3.2s ease-in-out infinite; }
+.landing-note { position: absolute; z-index: 2; top: 8%; right: 15%; width: 190px; padding: 1.2rem; color: #113a8b; background: #eef7ff; transform: rotate(-8deg); box-shadow: 0 14px 20px rgba(0,0,0,.2); font-size: 1.15rem; animation: noteBounce 3.2s ease-in-out infinite; }
 .landing-note strong { font-weight: 800; }
 .landing-note span { display: block; text-align: right; font-size: 2rem; color: #fbbf24; }
 .landing-students { position: absolute; z-index: 2; bottom: 17%; display: flex; gap: .8rem; align-items: end; }
@@ -71,6 +71,7 @@ textarea:focus { outline: none; background: rgba(255,255,255,0.1); border-color:
 .student-purple { height: 195px; background: #253678; animation-delay: 0.5s; }
 .student-pink { height: 220px; background: #b55b91; animation-delay: 0.75s; }
 .landing-campus { position: absolute; bottom: 9%; width: 90%; height: 55px; border-radius: 50%; background: linear-gradient(#9dbcf0, #3457ad); transform: perspective(100px) rotateX(15deg); box-shadow: 0 18px 40px rgba(15,12,41,0.6); }
+.createby{position: absolute;bottom: 1%;right: 1%;opacity: 0.2;}
 
 @keyframes orbDrift { 0% { transform: translate3d(0,0,0) scale(1); } 100% { transform: translate3d(18px,-28px,0) scale(1.06); } }
 @keyframes titlePop { 0% { opacity: 0; transform: translateY(18px) scale(0.98); } 60% { opacity: 1; transform: translateY(-6px) scale(1.02); } 100% { transform: translateY(0) scale(1); } }

@@ -58,7 +58,9 @@ def import_students_excel(token: str = Depends(get_bearer_token), file: UploadFi
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
             tmp.write(file.file.read())
-            return import_students_from_excel(tmp.name, db)
+            tmp.flush()
+            temp_path = tmp.name
+        return import_students_from_excel(temp_path, db)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -68,7 +70,9 @@ def import_students_json(token: str = Depends(get_bearer_token), file: UploadFil
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
             tmp.write(file.file.read())
-            return import_students_from_json(tmp.name, db)
+            tmp.flush()
+            temp_path = tmp.name
+        return import_students_from_json(temp_path, db)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 

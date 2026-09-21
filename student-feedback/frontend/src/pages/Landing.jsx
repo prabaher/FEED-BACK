@@ -52,6 +52,9 @@ export const Landing = () => {
             </div>
             <div className="landing-campus" />
           </section>
+          <section className="create">
+            <p>CREATED BY   Prabaher J</p>
+          </section>
         </div>
       </div>
     </main>
