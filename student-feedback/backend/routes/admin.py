@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Student, Event, GeneralFeedback, EventFeedback
-from schemas import StudentResponse, EventCreate, EventResponse
-from auth import verify_token, get_bearer_token
+from schemas import StudentResponse, EventCreate, EventResponse, StudentCreate
+from auth import verify_token, get_bearer_token, hash_password
 from services.student_import import import_students_from_excel, import_students_from_json
 from typing import List
 import tempfile
@@ -30,6 +30,27 @@ def get_admin_stats(token: str = Depends(get_bearer_token), db: Session = Depend
 def get_all_students(token: str = Depends(get_bearer_token), db: Session = Depends(get_db)):
     get_current_admin(token)
     return db.query(Student).all()
+
+@router.post("/students", response_model=dict)
+def create_student(student: StudentCreate, token: str = Depends(get_bearer_token), db: Session = Depends(get_db)):
+    get_current_admin(token)
+    if not student.register_no or not student.name or not student.dob or not student.department or not student.year or not student.section:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="All student fields are required")
+    if db.query(Student).filter(Student.register_no == student.register_no).first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Student with this register number already exists")
+    new_student = Student(
+        register_no=student.register_no,
+        name=student.name,
+        dob=student.dob,
+        department=student.department,
+        year=student.year,
+        section=student.section,
+        password_hash=hash_password(student.dob),
+    )
+    db.add(new_student)
+    db.commit()
+    db.refresh(new_student)
+    return {"status": "success", "message": "Student added successfully", "student_id": new_student.id}
 
 @router.post("/students/import-excel")
 def import_students_excel(token: str = Depends(get_bearer_token), file: UploadFile = File(...), db: Session = Depends(get_db)):

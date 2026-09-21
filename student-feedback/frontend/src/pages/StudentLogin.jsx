@@ -38,7 +38,7 @@ export const StudentLogin = () => {
           </div>
           {error && (<div className="mb-6 p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg flex gap-3"><AlertCircle className="w-5 h-5 text-red-400" /><p className="text-red-400 text-sm">{error}</p></div>)}
           <form onSubmit={handleLogin} className="space-y-4">
-            <div><label className="text-sm text-gray-400 mb-2 block uppercase">Register Number</label><input type="text" value={registerNo} onChange={(e) => setRegisterNo(e.target.value.toUpperCase())} placeholder="e.g., 23AD001" className="input-field w-full" /></div>
+            <div><label className="text-sm text-gray-400 mb-2 block uppercase">Register Number</label><input type="text" value={registerNo} onChange={(e) => setRegisterNo(e.target.value.toUpperCase())} placeholder="e.g., 71502424...." className="input-field w-full" /></div>
             <div><label className="text-sm text-gray-400 mb-2 block uppercase">Password (DOB: DD-MM-YYYY)</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="e.g., 15-04-2005" className="input-field w-full" /></div>
             <button type="submit" disabled={loading} className="btn-neon w-full flex items-center justify-center gap-2 mt-6"><LogIn size={20} />{loading ? 'Logging in...' : 'Login'}</button>
           </form>
