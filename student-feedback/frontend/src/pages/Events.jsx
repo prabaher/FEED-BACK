@@ -30,6 +30,7 @@ export const Events = () => {
           <div className="space-y-3">
             {events.map((event) => (
               <button key={event.id} onClick={() => navigate(`/student/events/${event.id}/feedback`)} className="card w-full text-left hover:scale-105 transition-transform">
+                {event.image_url && <img src={event.image_url} alt={event.event_name} className="w-full h-36 object-cover rounded-lg mb-3" />}
                 <div className="flex items-start justify-between">
                   <div className="flex-1"><h3 className="font-bold text-lg mb-1">{event.event_name}</h3>{event.description && <p className="text-sm text-gray-400 mb-2">{event.description}</p>}<div className="flex items-center gap-2 text-xs text-cyan-400"><Calendar size={14} />{event.event_date}</div></div>
                   <div className="text-2xl">→</div>

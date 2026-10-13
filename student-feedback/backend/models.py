@@ -25,7 +25,9 @@ class Event(Base):
     event_date = Column(String(10), nullable=False)
     status = Column(String(20), default="Active")
     created_at = Column(DateTime, default=datetime.utcnow)
-    event_feedbacks = relationship("EventFeedback", back_populates="event")
+    image_url = Column(Text, nullable=True)
+    questions = Column(Text, nullable=True)
+    event_feedbacks = relationship("EventFeedback", back_populates="event", cascade="all, delete-orphan")
 
 class GeneralFeedback(Base):
     __tablename__ = "general_feedback"
@@ -46,6 +48,7 @@ class EventFeedback(Base):
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     rating = Column(Float, nullable=False)
     feedback_text = Column(Text, nullable=False)
+    answers = Column(Text, nullable=True)
     show_name = Column(Boolean, default=True)
     show_register_no = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

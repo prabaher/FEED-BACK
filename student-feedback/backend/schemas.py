@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_validator
+from typing import Optional, List
 from datetime import datetime
+import json
 
 class StudentCreate(BaseModel):
     register_no: str
@@ -46,6 +47,15 @@ class EventCreate(BaseModel):
     description: Optional[str] = None
     event_date: str
     status: str = "Active"
+    questions: Optional[List[str]] = None
+
+    @field_validator("questions")
+    @classmethod
+    def clean_questions(cls, v):
+        if not v:
+            return None
+        cleaned = [q.strip() for q in v if q and q.strip()]
+        return cleaned or None
 
 class EventResponse(BaseModel):
     id: int
@@ -53,13 +63,30 @@ class EventResponse(BaseModel):
     description: Optional[str]
     event_date: str
     status: str
+    image_url: Optional[str] = None
+    questions: Optional[List[str]] = None
     created_at: datetime
+
+    @field_validator("questions", mode="before")
+    @classmethod
+    def parse_questions(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (ValueError, TypeError):
+                return None
+        return v
+
     class Config:
         from_attributes = True
+
+class EventImageUpload(BaseModel):
+    image_base64: str
 
 class EventFeedbackCreate(BaseModel):
     rating: float
     feedback_text: str
+    answers: Optional[List[str]] = None
     show_name: bool = True
     show_register_no: bool = False
 

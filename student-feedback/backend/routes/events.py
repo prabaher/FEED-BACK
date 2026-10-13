@@ -5,6 +5,7 @@ from models import Event, EventFeedback
 from schemas import EventResponse, EventFeedbackCreate
 from auth import verify_token, get_bearer_token
 from typing import List
+import json
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -39,8 +40,20 @@ def submit_event_feedback(event_id: int, feedback: EventFeedbackCreate, token: s
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rating must be between 1 and 5")
     if not feedback.feedback_text.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Feedback cannot be empty")
-    
-    event_feedback = EventFeedback(event_id=event_id, student_id=student_id, rating=feedback.rating, feedback_text=feedback.feedback_text, show_name=feedback.show_name, show_register_no=feedback.show_register_no)
+
+    answers_json = None
+    if event.questions:
+        try:
+            questions = json.loads(event.questions)
+        except (ValueError, TypeError):
+            questions = []
+        if questions:
+            answers = feedback.answers or []
+            if len(answers) != len(questions) or any(not (a or "").strip() for a in answers):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please answer all questions")
+            answers_json = json.dumps([a.strip() for a in answers])
+
+    event_feedback = EventFeedback(event_id=event_id, student_id=student_id, rating=feedback.rating, feedback_text=feedback.feedback_text, answers=answers_json, show_name=feedback.show_name, show_register_no=feedback.show_register_no)
     db.add(event_feedback)
     db.commit()
     return {"status": "success", "message": "Event feedback submitted successfully"}

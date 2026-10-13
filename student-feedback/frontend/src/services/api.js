@@ -69,6 +69,15 @@ export const importStudentsExcel = (file, token) => {
 export const createEvent = (eventData, token) =>
   api.post('/admin/events', eventData, { headers: authHeaders(token) })
 
+export const updateEvent = (eventId, eventData, token) =>
+  api.put(`/admin/events/${eventId}`, eventData, { headers: authHeaders(token) })
+
+export const uploadEventImage = (eventId, imageBase64, token) =>
+  api.post(`/admin/events/${eventId}/image`, { image_base64: imageBase64 }, { headers: authHeaders(token) })
+
+export const removeEventImage = (eventId, token) =>
+  api.delete(`/admin/events/${eventId}/image`, { headers: authHeaders(token) })
+
 export const getAdminEvents = (token) =>
   api.get('/admin/events', { headers: authHeaders(token) })
 

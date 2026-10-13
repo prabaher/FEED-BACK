@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Student, Event, GeneralFeedback, EventFeedback
-from schemas import StudentResponse, EventCreate, EventResponse, StudentCreate
+from schemas import StudentResponse, EventCreate, EventResponse, StudentCreate, EventImageUpload
 from auth import verify_token, get_bearer_token, hash_password
 from services.student_import import import_students_from_excel, import_students_from_json
 from typing import List
 import tempfile
+import json
+import base64
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -79,7 +81,7 @@ def import_students_json(token: str = Depends(get_bearer_token), file: UploadFil
 @router.post("/events")
 def create_event(event: EventCreate, token: str = Depends(get_bearer_token), db: Session = Depends(get_db)):
     get_current_admin(token)
-    new_event = Event(event_name=event.event_name, description=event.description, event_date=event.event_date, status=event.status)
+    new_event = Event(event_name=event.event_name, description=event.description, event_date=event.event_date, status=event.status, questions=json.dumps(event.questions) if event.questions else None)
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
@@ -100,6 +102,36 @@ def update_event(event_id: int, event: EventCreate, token: str = Depends(get_bea
     db_event.description = event.description
     db_event.event_date = event.event_date
     db_event.status = event.status
+    db_event.questions = json.dumps(event.questions) if event.questions else None
+    db.commit()
+    return {"status": "success"}
+
+@router.post("/events/{event_id}/image")
+def upload_event_image(event_id: int, payload: EventImageUpload, token: str = Depends(get_bearer_token), db: Session = Depends(get_db)):
+    get_current_admin(token)
+    db_event = db.query(Event).filter(Event.id == event_id).first()
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    data = payload.image_base64.strip()
+    if not data.startswith("data:image/"):
+        raise HTTPException(status_code=400, detail="Invalid image data")
+    try:
+        raw = base64.b64decode(data.split(",", 1)[1])
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image data")
+    if len(raw) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image too large (max 2MB)")
+    db_event.image_url = data
+    db.commit()
+    return {"status": "success"}
+
+@router.delete("/events/{event_id}/image")
+def remove_event_image(event_id: int, token: str = Depends(get_bearer_token), db: Session = Depends(get_db)):
+    get_current_admin(token)
+    db_event = db.query(Event).filter(Event.id == event_id).first()
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    db_event.image_url = None
     db.commit()
     return {"status": "success"}
 
@@ -109,6 +141,7 @@ def delete_event(event_id: int, token: str = Depends(get_bearer_token), db: Sess
     db_event = db.query(Event).filter(Event.id == event_id).first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
+    db.query(EventFeedback).filter(EventFeedback.event_id == event_id).delete(synchronize_session=False)
     db.delete(db_event)
     db.commit()
     return {"status": "success"}
@@ -134,5 +167,9 @@ def get_event_feedback(event_id: int, token: str = Depends(get_bearer_token), db
         fb_dict = {"id": fb.id, "rating": fb.rating, "feedback_text": fb.feedback_text, "created_at": fb.created_at, "show_name": fb.show_name, "show_register_no": fb.show_register_no}
         fb_dict["student_name"] = fb.student.name if fb.show_name else "Anonymous Student"
         fb_dict["register_no"] = fb.student.register_no if fb.show_register_no else None
+        try:
+            fb_dict["answers"] = json.loads(fb.answers) if fb.answers else None
+        except (ValueError, TypeError):
+            fb_dict["answers"] = None
         result.append(fb_dict)
     return result

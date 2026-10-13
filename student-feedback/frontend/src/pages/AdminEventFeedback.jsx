@@ -50,6 +50,18 @@ export const AdminEventFeedback = () => {
                       <span className="text-xs text-gray-500">{new Date(fb.created_at).toLocaleDateString()}</span>
                     </div>
                     <p className="text-sm text-gray-300 mb-2">{fb.feedback_text}</p>
+                    {fb.answers && fb.answers.length > 0 && (
+                      <div className="mb-2 space-y-1">
+                        {(events.find((ev) => ev.id === selectedEventId)?.questions || []).map((q, i) => (
+                          fb.answers[i] ? (
+                            <div key={i} className="text-xs bg-purple-500 bg-opacity-10 border border-purple-500 border-opacity-30 rounded p-2">
+                              <span className="text-purple-300">Q: {q}</span>
+                              <p className="text-gray-200 mt-0.5">A: {fb.answers[i]}</p>
+                            </div>
+                          ) : null
+                        ))}
+                      </div>
+                    )}
                     <div className="flex gap-2 flex-wrap text-xs">
                       {fb.show_name && <span className="px-2 py-1 bg-green-500 bg-opacity-20 text-green-300 rounded">Name visible</span>}
                       {fb.show_register_no && <span className="px-2 py-1 bg-blue-500 bg-opacity-20 text-blue-300 rounded">Register visible</span>}
