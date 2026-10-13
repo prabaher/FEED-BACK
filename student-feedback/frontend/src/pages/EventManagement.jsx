@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getAdminEvents, createEvent, updateEvent, deleteEvent, uploadEventImage, removeEventImage } from '../services/api'
 import { LoadingSpinner } from '../components/LoadingSpinner'
-import { ArrowLeft, Plus, Trash2, X, Pencil, ImagePlus, ListPlus } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, X, Pencil, ImagePlus, ListPlus, Calendar, CheckCircle, AlertCircle } from 'lucide-react'
 
 const EMPTY_FORM = { event_name: '', description: '', event_date: '', status: 'Active', questions: [] }
 
@@ -83,7 +83,10 @@ export const EventManagement = () => {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (!file.type.startsWith('image/')) { setError('Please choose an image file'); return }
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose a valid image file')
+      return
+    }
     setError('')
     setUploading(true)
     try {
@@ -103,7 +106,12 @@ export const EventManagement = () => {
     setPendingImage(null)
     setImageRemoved(true)
     if (editingId) {
-      try { await removeEventImage(editingId, adminAuth.token); setImageRemoved(false) } catch (err) { setError('Failed to remove image') }
+      try {
+        await removeEventImage(editingId, adminAuth.token)
+        setImageRemoved(false)
+      } catch (err) {
+        setError('Failed to remove image')
+      }
     }
   }
 
@@ -121,7 +129,10 @@ export const EventManagement = () => {
     e.preventDefault()
     setError('')
     setSuccess('')
-    if (!formData.event_name || !formData.event_date) { setError('Please fill in all required fields'); return }
+    if (!formData.event_name || !formData.event_date) {
+      setError('Please fill in all required fields')
+      return
+    }
     const payload = {
       ...formData,
       description: formData.description || null,
@@ -160,7 +171,7 @@ export const EventManagement = () => {
     setSuccess('')
     try {
       await deleteEvent(eventId, adminAuth.token)
-      setSuccess('Event deleted')
+      setSuccess('Event deleted successfully')
       refresh()
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to delete event')
@@ -170,74 +181,268 @@ export const EventManagement = () => {
   if (loading) return <LoadingSpinner message="Loading events..." />
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-2xl mx-auto p-4">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft size={20} />Back</button>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold neon-purple">📅 Events</h1>
-          <button onClick={() => (showForm && !editingId ? setShowForm(false) : openCreate())} className="flex items-center gap-2 btn-neon"><Plus size={20} />New Event</button>
+    <div className="min-h-screen pb-20 p-4 sm:p-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/admin/dashboard')}
+              className="neu-icon-btn"
+              aria-label="Back to dashboard"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#FEF3E2]">Campus Events</h1>
+              <p className="text-xs text-[#d8c2ad]">Configure event details and custom question surveys</p>
+            </div>
+          </div>
+          <button
+            onClick={() => (showForm && !editingId ? setShowForm(false) : openCreate())}
+            className="landing-button landing-button-admin text-xs sm:text-sm py-2.5 px-4"
+          >
+            <Plus size={18} />
+            <span className="hidden sm:inline">New Event</span>
+          </button>
         </div>
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-        {success && <p className="text-green-400 text-sm mb-4">{success}</p>}
+
+        {error && (
+          <div className="mb-4 p-3.5 neu-sunken border border-red-500/30 rounded-xl flex items-center gap-2.5 text-red-400 text-sm">
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </div>
+        )}
+        {success && (
+          <div className="mb-4 p-3.5 neu-sunken border border-emerald-500/30 rounded-xl flex items-center gap-2.5 text-emerald-400 text-sm">
+            <CheckCircle size={18} />
+            <span>{success}</span>
+          </div>
+        )}
+
+        {/* Create / Edit Modal Form */}
         {showForm && (
-          <div className="card mb-6">
-            <div className="flex justify-between items-center mb-4"><h3 className="font-semibold">{editingId ? 'Edit Event' : 'Create New Event'}</h3><button onClick={() => { setShowForm(false); setEditingId(null) }}><X size={20} /></button></div>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <input type="text" placeholder="Event Name" value={formData.event_name} onChange={(e) => setFormData({ ...formData, event_name: e.target.value })} className="input-field w-full" />
-              <textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full" />
+          <div className="card mb-8 animate-fadeIn p-6 sm:p-8">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-[#FEF3E2]/5">
+              <div>
+                <h3 className="font-extrabold text-xl text-[#FEF3E2]">
+                  {editingId ? 'Edit Event Details' : 'Create New Campus Event'}
+                </h3>
+                <p className="text-xs text-[#d8c2ad]">Students can rate and respond after publication</p>
+              </div>
+              <button
+                onClick={() => { setShowForm(false); setEditingId(null) }}
+                className="neu-icon-btn"
+                aria-label="Close form"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-              <div className="border border-gray-700 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm text-gray-400 uppercase tracking-wide flex items-center gap-2"><ImagePlus size={16} />Event Photo</label>
-                  {image && <button type="button" onClick={handleRemoveImage} className="text-xs text-red-400 hover:text-red-300">Remove</button>}
-                </div>
-                {image && <img src={image} alt="Event preview" className="w-full h-40 object-cover rounded-lg mb-2" />}
-                <input type="file" accept="image/*" onChange={handleImageSelect} className="text-sm text-gray-400 w-full" />
-                {uploading && <p className="text-xs text-cyan-400 mt-1">Processing image...</p>}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider block mb-1.5">
+                  Event Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Annual Tech Symposium 2026"
+                  value={formData.event_name}
+                  onChange={(e) => setFormData({ ...formData, event_name: e.target.value })}
+                  className="input-field"
+                  required
+                />
               </div>
 
-              <input type="text" placeholder="Date (DD-MM-YYYY)" value={formData.event_date} onChange={(e) => setFormData({ ...formData, event_date: e.target.value })} className="input-field w-full" />
-              <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="input-field w-full">
-                <option value="Active">Active</option>
-                <option value="Closed">Closed</option>
-              </select>
+              <div>
+                <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider block mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Describe the event, organizers, and key highlights..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  className="w-full"
+                />
+              </div>
 
-              <div className="border border-gray-700 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm text-gray-400 uppercase tracking-wide flex items-center gap-2"><ListPlus size={16} />Feedback Questions (optional)</label>
-                  <button type="button" onClick={addQuestion} className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300"><Plus size={14} />Add Question</button>
+              {/* Photo Upload */}
+              <div className="p-4 rounded-xl neu-sunken border border-[#FEF3E2]/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider flex items-center gap-2">
+                    <ImagePlus size={16} className="text-[#F4AE52]" />
+                    Event Banner Photo
+                  </label>
+                  {image && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      Remove Photo
+                    </button>
+                  )}
                 </div>
-                {formData.questions.length === 0 && <p className="text-xs text-gray-500">No extra questions — students will only give a rating and comment.</p>}
-                <div className="space-y-2">
-                  {formData.questions.map((q, i) => (
-                    <div key={i} className="flex gap-2">
-                      <input type="text" placeholder={`Question ${i + 1}`} value={q} onChange={(e) => setQuestion(i, e.target.value)} className="input-field w-full" />
-                      <button type="button" onClick={() => removeQuestion(i)} className="text-red-400 hover:text-red-300 px-2"><X size={16} /></button>
-                    </div>
-                  ))}
+                {image && (
+                  <div className="w-full h-44 overflow-hidden rounded-xl border border-[#FEF3E2]/10 neu-sunken">
+                    <img src={image} alt="Event preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="text-xs text-[#d8c2ad] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#F4AE52]/20 file:text-[#F4AE52] hover:file:bg-[#F4AE52]/30 cursor-pointer"
+                />
+                {uploading && <p className="text-xs text-[#F4AE52]">Processing image file...</p>}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider block mb-1.5">
+                    Date (DD-MM-YYYY) *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 25-10-2026"
+                    value={formData.event_date}
+                    onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
+                    className="input-field"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider block mb-1.5">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="input-field"
+                  >
+                    <option value="Active">Active (Accepting Feedback)</option>
+                    <option value="Closed">Closed</option>
+                  </select>
                 </div>
               </div>
 
-              <button type="submit" disabled={uploading} className="btn-neon w-full">{uploading ? 'Saving...' : editingId ? 'Update Event' : 'Create Event'}</button>
+              {/* Questions Section */}
+              <div className="p-4 rounded-xl neu-sunken border border-[#FEF3E2]/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider flex items-center gap-2">
+                    <ListPlus size={16} className="text-[#D4621A]" />
+                    Custom Survey Questions (Optional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addQuestion}
+                    className="neu-button text-xs py-1 px-3"
+                  >
+                    <Plus size={14} /> Add Question
+                  </button>
+                </div>
+
+                {formData.questions.length === 0 ? (
+                  <p className="text-xs text-[#9c8472] py-1">
+                    No custom questions added. Students will provide star rating & commentary.
+                  </p>
+                ) : (
+                  <div className="space-y-2 pt-1">
+                    {formData.questions.map((q, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder={`Question ${i + 1} (e.g. Was the speaker clear?)`}
+                          value={q}
+                          onChange={(e) => setQuestion(i, e.target.value)}
+                          className="input-field flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeQuestion(i)}
+                          className="neu-icon-btn text-red-400 hover:text-red-300 flex-shrink-0"
+                          title="Remove question"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setEditingId(null) }}
+                  className="neu-button"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="landing-button landing-button-admin"
+                >
+                  {uploading ? 'Saving Event...' : editingId ? 'Update Event' : 'Publish Event'}
+                </button>
+              </div>
             </form>
           </div>
         )}
-        <div className="space-y-3">
+
+        {/* Existing Events List */}
+        <div className="space-y-4">
           {events.length === 0 ? (
-            <div className="card text-center text-gray-400">No events created yet</div>
+            <div className="card text-center p-8 text-[#d8c2ad]">
+              No campus events created yet. Click "New Event" above to create one.
+            </div>
           ) : (
             events.map((event) => (
-              <div key={event.id} className="card">
-                {event.image_url && <img src={event.image_url} alt={event.event_name} className="w-full h-40 object-cover rounded-lg mb-3" />}
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1"><h3 className="font-semibold text-lg">{event.event_name}</h3>{event.description && <p className="text-sm text-gray-400 mb-1">{event.description}</p>}<p className="text-xs text-cyan-400">{event.event_date}</p>
-                    {event.questions?.length > 0 && <p className="text-xs text-purple-300 mt-1">{event.questions.length} custom question{event.questions.length > 1 ? 's' : ''}</p>}
+              <div key={event.id} className="card p-5 sm:p-6 space-y-4">
+                {event.image_url && (
+                  <div className="w-full h-44 sm:h-52 overflow-hidden rounded-xl border border-[#FEF3E2]/10 neu-sunken">
+                    <img src={event.image_url} alt={event.event_name} className="w-full h-full object-cover" />
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${event.status === 'Active' ? 'bg-green-500 bg-opacity-20 text-green-300' : 'bg-red-500 bg-opacity-20 text-red-300'}`}>{event.status}</span>
+                )}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F4AE52]/10 text-[#F4AE52] border border-[#F4AE52]/20">
+                        <Calendar size={12} />
+                        {event.event_date}
+                      </span>
+                      <span className={`neu-badge ${event.status === 'Active' ? 'neu-badge-green' : 'neu-badge-red'}`}>
+                        {event.status}
+                      </span>
+                    </div>
+                    <h3 className="font-extrabold text-xl text-[#FEF3E2]">{event.event_name}</h3>
+                    {event.description && (
+                      <p className="text-xs sm:text-sm text-[#d8c2ad] mt-1 leading-relaxed">
+                        {event.description}
+                      </p>
+                    )}
+                    {event.questions?.length > 0 && (
+                      <p className="text-xs text-[#F4AE52] mt-2 font-medium">
+                        ✦ {event.questions.length} custom survey question{event.questions.length > 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => openEdit(event)} className="flex-1 flex items-center justify-center gap-2 text-sm py-2 bg-purple-500 bg-opacity-20 hover:bg-opacity-40 text-purple-300 rounded transition-all"><Pencil size={16} />Edit</button>
-                  <button onClick={() => handleDelete(event.id)} className="flex-1 flex items-center justify-center gap-2 text-sm py-2 bg-red-500 bg-opacity-20 hover:bg-opacity-40 text-red-300 rounded transition-all"><Trash2 size={16} />Delete</button>
+
+                <div className="flex items-center gap-3 pt-2 border-t border-[#FEF3E2]/5">
+                  <button
+                    onClick={() => openEdit(event)}
+                    className="neu-button flex-1 text-[#F4AE52] text-xs sm:text-sm py-2"
+                  >
+                    <Pencil size={15} /> Edit Event
+                  </button>
+                  <button
+                    onClick={() => handleDelete(event.id)}
+                    className="neu-button flex-1 text-red-400 text-xs sm:text-sm py-2 hover:text-red-300"
+                  >
+                    <Trash2 size={15} /> Delete Event
+                  </button>
                 </div>
               </div>
             ))

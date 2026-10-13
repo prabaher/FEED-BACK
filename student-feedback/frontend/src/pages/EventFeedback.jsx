@@ -6,7 +6,7 @@ import { StarRating } from '../components/StarRating'
 import { IdentityToggle } from '../components/IdentityToggle'
 import { SuccessAnimation } from '../components/SuccessAnimation'
 import { LoadingSpinner } from '../components/LoadingSpinner'
-import { ArrowLeft, AlertCircle } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Calendar, Send, HelpCircle } from 'lucide-react'
 
 export const EventFeedback = () => {
   const { studentAuth } = useAuth()
@@ -25,21 +25,43 @@ export const EventFeedback = () => {
   const [alreadySubmitted, setAlreadySubmitted] = useState(false)
 
   useEffect(() => {
-    getEvent(eventId).then(({ data }) => { setEvent(data); setAnswers(new Array((data.questions || []).length).fill('')); checkExistingFeedback() }).catch(() => setError('Event not found')).finally(() => setLoading(false))
+    getEvent(eventId)
+      .then(({ data }) => {
+        setEvent(data)
+        setAnswers(new Array((data.questions || []).length).fill(''))
+        checkExistingFeedback()
+      })
+      .catch(() => setError('Event not found'))
+      .finally(() => setLoading(false))
   }, [eventId])
 
   const checkExistingFeedback = async () => {
-    try { await getMyEventFeedback(eventId, studentAuth.token); setAlreadySubmitted(true) } catch (err) { }
+    try {
+      await getMyEventFeedback(eventId, studentAuth.token)
+      setAlreadySubmitted(true)
+    } catch (err) {}
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-    if (rating === 0) { setError('Please provide a rating'); setSubmitting(false); return }
-    if (!feedback.trim()) { setError('Please write some feedback'); setSubmitting(false); return }
+    if (rating === 0) {
+      setError('Please provide a rating')
+      setSubmitting(false)
+      return
+    }
+    if (!feedback.trim()) {
+      setError('Please write some feedback')
+      setSubmitting(false)
+      return
+    }
     const questions = event.questions || []
-    if (questions.length > 0 && answers.some((a) => !a.trim())) { setError('Please answer all questions'); setSubmitting(false); return }
+    if (questions.length > 0 && answers.some((a) => !a.trim())) {
+      setError('Please answer all event questions')
+      setSubmitting(false)
+      return
+    }
     try {
       const payload = { rating, feedback_text: feedback, show_name: showName, show_register_no: showRegisterNo }
       if (questions.length > 0) payload.answers = answers.map((a) => a.trim())
@@ -53,48 +75,158 @@ export const EventFeedback = () => {
     }
   }
 
-  if (loading) return <LoadingSpinner message="Loading event..." />
+  if (loading) return <LoadingSpinner message="Loading event details..." />
   if (success) return <SuccessAnimation onComplete={() => navigate('/student/events')} />
+
   if (alreadySubmitted) {
     return (
-      <div className="min-h-screen p-4">
-        <div className="max-w-md mx-auto">
-          <button onClick={() => navigate('/student/events')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft size={20} />Back</button>
-          <div className="card"><div className="flex items-start gap-3 mb-4"><AlertCircle className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-1" /><div><h3 className="font-semibold text-yellow-400 mb-2">Already Submitted</h3><p className="text-gray-300 text-sm">You have already submitted feedback for this event.</p></div></div><button onClick={() => navigate('/student/events')} className="btn-neon w-full">Back to Events</button></div>
+      <div className="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-center">
+        <div className="w-full max-w-md animate-fadeIn">
+          <button
+            onClick={() => navigate('/student/events')}
+            className="neu-icon-btn mb-6"
+            aria-label="Back to events"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="card text-center p-6 sm:p-8">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#1e1107] border border-[#F4AE52]/30 flex items-center justify-center text-[#F4AE52] shadow-[inset_3px_3px_6px_rgba(10,5,1,0.6)]">
+              <AlertCircle size={28} />
+            </div>
+            <h2 className="text-xl font-bold text-[#FEF3E2] mb-2">Already Submitted</h2>
+            <p className="text-[#d8c2ad] text-sm mb-6 leading-relaxed">
+              You have already submitted your response for this event. Thank you for your feedback!
+            </p>
+            <button
+              onClick={() => navigate('/student/events')}
+              className="landing-button landing-button-student w-full"
+            >
+              Back to Events
+            </button>
+          </div>
         </div>
       </div>
     )
   }
+
   if (!event) return null
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-md mx-auto p-4">
-        <button onClick={() => navigate('/student/events')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft size={20} />Back</button>
-        <div className="card animate-fadeIn">
-          {event.image_url && <img src={event.image_url} alt={event.event_name} className="w-full h-44 object-cover rounded-lg mb-4" />}
-          <h1 className="text-2xl font-bold mb-2">🎯 {event.event_name}</h1>
-          <p className="text-gray-400 mb-4 text-sm">{event.event_date}</p>
-          {event.description && <p className="text-gray-300 mb-6">{event.description}</p>}
-          {error && (<div className="mb-6 p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg flex gap-3"><AlertCircle className="w-5 h-5 text-red-400" /><p className="text-red-400 text-sm">{error}</p></div>)}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div><p className="text-sm text-gray-400 mb-4 uppercase tracking-wide">How would you rate this event?</p><StarRating value={rating} onChange={setRating} /></div>
+    <div className="min-h-screen pb-20 p-4 sm:p-6">
+      <div className="max-w-lg mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate('/student/events')}
+            className="neu-icon-btn"
+            aria-label="Back to events"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#FEF3E2]">Event Feedback</h1>
+            <p className="text-xs text-[#d8c2ad]">Share your thoughts on this event</p>
+          </div>
+        </div>
+
+        <div className="card animate-fadeIn p-6 sm:p-8 space-y-6">
+          {event.image_url && (
+            <div className="w-full h-44 sm:h-52 overflow-hidden rounded-xl border border-[#FEF3E2]/10 neu-sunken">
+              <img
+                src={event.image_url}
+                alt={event.event_name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F4AE52]/10 text-[#F4AE52] border border-[#F4AE52]/20 mb-2">
+              <Calendar size={13} />
+              {event.event_date}
+            </div>
+            <h2 className="text-2xl font-extrabold text-[#FEF3E2]">{event.event_name}</h2>
+            {event.description && (
+              <p className="text-sm text-[#d8c2ad] mt-2 leading-relaxed">{event.description}</p>
+            )}
+          </div>
+
+          {error && (
+            <div className="p-3.5 neu-sunken border border-red-500/30 rounded-xl flex items-center gap-3 bg-red-950/20">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <p className="text-red-300 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+            <div>
+              <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider block text-center mb-3">
+                How would you rate this event?
+              </label>
+              <StarRating value={rating} onChange={setRating} />
+            </div>
+
             {(event.questions || []).length > 0 && (
-              <div>
-                <p className="text-sm text-gray-400 mb-3 uppercase tracking-wide">Event Questions</p>
-                <div className="space-y-3">
+              <div className="space-y-4 pt-2 border-t border-[#FEF3E2]/5">
+                <div className="flex items-center gap-2">
+                  <HelpCircle size={16} className="text-[#F4AE52]" />
+                  <p className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider">
+                    Event Questions
+                  </p>
+                </div>
+                <div className="space-y-3.5">
                   {event.questions.map((q, i) => (
-                    <div key={i}>
-                      <label className="text-sm text-gray-300 block mb-1">{i + 1}. {q}</label>
-                      <input type="text" value={answers[i] || ''} onChange={(e) => { const next = [...answers]; next[i] = e.target.value; setAnswers(next) }} placeholder="Your answer" className="input-field w-full" />
+                    <div key={i} className="space-y-1.5">
+                      <label className="text-xs text-[#d8c2ad] block">
+                        <span className="text-[#F4AE52] font-bold mr-1.5">Q{i + 1}.</span>
+                        {q}
+                      </label>
+                      <input
+                        type="text"
+                        value={answers[i] || ''}
+                        onChange={(e) => {
+                          const next = [...answers]
+                          next[i] = e.target.value
+                          setAnswers(next)
+                        }}
+                        placeholder="Your answer..."
+                        className="input-field"
+                        required
+                      />
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            <div><label className="text-sm text-gray-400 block mb-2 uppercase tracking-wide">Your Feedback</label><textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="What did you like? What could be improved?..." className="w-full" /></div>
-            <IdentityToggle showName={showName} showRegisterNo={showRegisterNo} onShowNameChange={setShowName} onShowRegisterNoChange={setShowRegisterNo} />
-            <button type="submit" disabled={submitting} className="btn-neon w-full">{submitting ? 'Sending...' : 'Submit Feedback'}</button>
+
+            <div className="space-y-2 pt-2 border-t border-[#FEF3E2]/5">
+              <label className="text-xs font-semibold text-[#d8c2ad] uppercase tracking-wider block">
+                Additional Comments & Feedback
+              </label>
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="What did you like? What could be improved for future events?"
+                rows={4}
+                className="w-full"
+                required
+              />
+            </div>
+
+            <IdentityToggle
+              showName={showName}
+              showRegisterNo={showRegisterNo}
+              onShowNameChange={setShowName}
+              onShowRegisterNoChange={setShowRegisterNo}
+            />
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="landing-button landing-button-student w-full flex items-center justify-center gap-2 mt-4"
+            >
+              <Send size={18} />
+              {submitting ? 'Submitting...' : 'Submit Event Feedback'}
+            </button>
           </form>
         </div>
       </div>

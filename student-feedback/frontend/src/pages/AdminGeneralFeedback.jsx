@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getGeneralFeedback } from '../services/api'
 import { LoadingSpinner } from '../components/LoadingSpinner'
-import { ArrowLeft, Star } from 'lucide-react'
+import { ArrowLeft, Star, Calendar, User, ShieldCheck, MessageSquare } from 'lucide-react'
 
 export const AdminGeneralFeedback = () => {
   const { adminAuth } = useAuth()
@@ -13,32 +13,104 @@ export const AdminGeneralFeedback = () => {
 
   useEffect(() => {
     if (!adminAuth) navigate('/admin/login')
-    else getGeneralFeedback(adminAuth.token).then(({ data }) => setFeedbacks(data)).catch(() => {}).finally(() => setLoading(false))
+    else {
+      getGeneralFeedback(adminAuth.token)
+        .then(({ data }) => setFeedbacks(data))
+        .catch(() => {})
+        .finally(() => setLoading(false))
+    }
   }, [adminAuth, navigate])
 
-  if (loading) return <LoadingSpinner message="Loading feedback..." />
+  if (loading) return <LoadingSpinner message="Loading general feedback submissions..." />
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-2xl mx-auto p-4">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"><ArrowLeft size={20} />Back</button>
-        <h1 className="text-3xl font-bold mb-6 neon-cyan">📝 General Feedback</h1>
-        <div className="mb-4 text-sm text-gray-400">Total Responses: <span className="font-bold text-white">{feedbacks.length}</span></div>
-        <div className="space-y-3">
+    <div className="min-h-screen pb-20 p-4 sm:p-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate('/admin/dashboard')}
+            className="neu-icon-btn"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#FEF3E2]">General Feedback</h1>
+            <p className="text-xs text-[#d8c2ad]">All submitted campus experience responses</p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between px-1 mb-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#d8c2ad]">
+            Total Responses: <strong className="text-[#F4AE52] ml-1">{feedbacks.length}</strong>
+          </span>
+        </div>
+
+        <div className="space-y-4">
           {feedbacks.length === 0 ? (
-            <div className="card text-center text-gray-400">No feedback yet</div>
+            <div className="card text-center p-8 text-[#d8c2ad]">
+              <MessageSquare size={32} className="mx-auto mb-2 text-[#9c8472]" />
+              No general feedback received yet.
+            </div>
           ) : (
             feedbacks.map((fb) => (
-              <div key={fb.id} className="card">
-                <div className="flex items-start justify-between mb-2">
-                  <div><div className="flex items-center gap-2 mb-1"><div className="flex gap-1">{[...Array(5)].map((_, i) => (<Star key={i} size={14} className={i < fb.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'} />))}</div><span className="text-yellow-400 text-sm font-semibold">{fb.rating}</span></div><p className="text-xs text-gray-400"><strong>{fb.student_name || 'Anonymous'}</strong>{fb.register_no && ` • ${fb.register_no}`}</p></div>
-                  <span className="text-xs text-gray-500">{new Date(fb.created_at).toLocaleDateString()}</span>
+              <div key={fb.id} className="card p-5 sm:p-6 space-y-3.5 animate-fadeIn">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#FEF3E2]/5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          className={
+                            i < fb.rating
+                              ? 'fill-[#F4AE52] text-[#F4AE52] drop-shadow-[0_1px_4px_rgba(244,174,82,0.4)]'
+                              : 'text-[#9c8472]'
+                          }
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[#F4AE52] text-sm font-bold">{fb.rating}.0</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-[#d8c2ad]">
+                    <Calendar size={13} />
+                    <span>{new Date(fb.created_at).toLocaleDateString()}</span>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-300 mb-2">{fb.feedback_text}</p>
-                <div className="flex gap-2 flex-wrap text-xs">
-                  {fb.show_name && <span className="px-2 py-1 bg-green-500 bg-opacity-20 text-green-300 rounded">Name visible</span>}
-                  {fb.show_register_no && <span className="px-2 py-1 bg-blue-500 bg-opacity-20 text-blue-300 rounded">Register visible</span>}
-                  {!fb.show_name && !fb.show_register_no && <span className="px-2 py-1 bg-gray-500 bg-opacity-20 text-gray-300 rounded">Anonymous</span>}
+
+                <div className="neu-sunken p-3.5 rounded-xl border border-[#FEF3E2]/5">
+                  <p className="text-sm sm:text-base text-[#FEF3E2] leading-relaxed whitespace-pre-line">
+                    "{fb.feedback_text}"
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+                  <div className="text-[#d8c2ad] font-medium">
+                    <span className="text-[#9c8472] mr-1.5">Submitted by:</span>
+                    <strong className="text-[#FEF3E2]">{fb.student_name || 'Anonymous Student'}</strong>
+                    {fb.register_no && (
+                      <span className="text-[#F4AE52] font-mono ml-1.5">({fb.register_no})</span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-1.5 flex-wrap">
+                    {fb.show_name && (
+                      <span className="neu-badge neu-badge-green">
+                        <User size={11} /> Name visible
+                      </span>
+                    )}
+                    {fb.show_register_no && (
+                      <span className="neu-badge neu-badge-amber">
+                        <ShieldCheck size={11} /> Register visible
+                      </span>
+                    )}
+                    {!fb.show_name && !fb.show_register_no && (
+                      <span className="neu-badge neu-badge-gray">
+                        Anonymous
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
